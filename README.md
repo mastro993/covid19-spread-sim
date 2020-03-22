@@ -1,1 +1,1 @@
-covid19-spread-sim
+covid-19-spread-sim
