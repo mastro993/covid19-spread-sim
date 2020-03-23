@@ -1,26 +1,48 @@
 // Graphics
-const CANVAS_W = 1280;
-const CANVAS_H = 1400;
+const CANVAS_W = 1100;
+const CANVAS_H = 1000;
 
-const box_w = CANVAS_W;
-const box_h = 1000;
+const particle_box_x = 250;
+const particle_box_y = 0;
+const particle_box_w = 850;
+const particle_box_h = 800;
+
+const control_box_x = 0;
+const control_box_y = 0;
+const control_box_w = 250;
+const control_box_h = 200;
+
+const stat_box_x = 0;
+const stat_box_y = control_box_h;
+const stat_box_w = 250;
+const stat_box_h = particle_box_h - control_box_h;
+
+const chart_box_x = 0;
+const chart_box_y = 0;
+const chart_box_w = 200;
+const chart_box_h = 200;
 
 const fps = 60;
 
 // Particles settings
 const particle_count = 500;
 const particle_size = 5;
-const particle_infection_area = particle_size * 4;
 const particle_max_speed = 2.0;
 // Probabilities
-const infection_probability_contact = 0.95;
-const infection_probability_area = 0.01;
+const infection_probability_contact = 0.5;
 
 const status_probability_death = 0.001;
 const status_probability_recovery = 0.001;
 
+const infection_inbation_days = 14;
+
+const color_normal = '#e4fcf9';
+const color_recovered = '#389168';
+const color_infected = '#cb3b3b';
+const color_deceased = '#00000050';
+
 // Simulation
-const home_percentage = 0.0;
+const home_percentage = 0.00;
 
 var TICKS = 0;
 
@@ -35,11 +57,14 @@ var _maxActive = 0;
 function setup() {
   createCanvas(CANVAS_W, CANVAS_H);
   frameRate(fps);
+  init();
+}
 
+function init() {
   // Init particles
   for (var i = 0; i < particle_count; i++) {
-    let x = Math.random() * box_w;
-    let y = Math.random() * box_h;
+    let x = particle_box_x + Math.random() * particle_box_w;
+    let y = particle_box_y + Math.random() * particle_box_h;
     let dx = particle_max_speed - (Math.random() * particle_max_speed * 2);
     let dy = particle_max_speed - (Math.random() * particle_max_speed * 2);
     _particles[i] = new Particle(x, y, dx, dy);
@@ -51,7 +76,15 @@ function setup() {
     _particles[i].staysAtHome = true;
   }
 
+  TICKS = 0;
+  _infected = 0;
+  _recovered = 0;
+  _dead = 0;
+  _active = 0;
+  _maxActive = 0;
+
 }
+
 var last_fps_sec = 0;
 var last_fps_ticks = 0;
 var actual_fps = 0;
@@ -64,27 +97,28 @@ function draw() {
   _dead = 0;
   _active = 0;
 
-  background('#333644');
+  background(0);
 
+  drawControls();
   drawParticles();
-  drawStatistics();
   drawChart();
+  drawStatistics();
 
   if (second() != last_fps_sec) {
     actual_fps = TICKS - last_fps_ticks;
     last_fps_sec = second();
     last_fps_ticks = TICKS;
   }
-  textSize(21);
+  textSize(14);
   fill('#ffd717')
-  text(actual_fps, 10, 25);
+  text(actual_fps, particle_box_x + 10, particle_box_y + 20);
 
 }
 
 function drawParticles() {
 
   fill('#333644')
-  rect(0, 0, box_w, box_h - box_h);
+  rect(particle_box_x, 0, particle_box_w, particle_box_h);
 
   for (var i = 0; i < particle_count; i++) {
     _particles[i].checkState();
@@ -107,55 +141,92 @@ function drawParticles() {
   }
 }
 
-function drawStatistics() {
+var playing = false;
 
-  let stat_box_x = 0;
-  let stat_box_y = box_h
+function drawControls() {
 
   fill('#f3e9d2')
-  rect(stat_box_x, stat_box_y, CANVAS_W, CANVAS_H - box_h);
+  rect(control_box_x, control_box_y, control_box_w, control_box_h);
 
-  textSize(18);
+  var start_button = createButton('Play');
+  start_button.position(control_box_x + 30, 10);
+  start_button.mousePressed(() => {
+    playing = true;
+  });
+
+  var stop_button = createButton('Stop');
+  stop_button.position(control_box_x + 80, 10);
+  stop_button.mousePressed(() => {
+    playing = false;
+  });
+
+  var restart_button = createButton('Restart');
+  restart_button.position(control_box_x + 130, 10);
+  restart_button.mousePressed(() => {
+    init();
+    playing = true;
+  });
+
   fill('#3e4a61')
-  text('Day:', stat_box_x + 10, stat_box_y + 30);
-  text(ticksToSeconds(TICKS), stat_box_x + 120, stat_box_y + 30);
-  text('Total items:', stat_box_x + 10, stat_box_y + 55);
-  text(particle_count, stat_box_x + 120, stat_box_y + 55);
-  text('Static items:', stat_box_x + 10, stat_box_y + 80);
-  text(particle_count * home_percentage, stat_box_x + 120, stat_box_y + 80);
-  text('(' + ofTotalParticles(particle_count * home_percentage) + '%)', stat_box_x + 170, stat_box_y + 80);
+  text('Item count', control_box_x + 10, control_box_y + 50);
+  var particle_count_slider = createSlider(0, 1000, 500);
+  particle_count_slider.position(control_box_x + 30, 50);
+  particle_count_slider.style('width', (control_box_w - 60) + 'px');
+
+  if (playing) {
+    start_button.attribute('disabled', '');
+  } else {
+    stop_button.attribute('disabled', '');
+  }
+
+}
+
+function drawStatistics() {
+
+  fill('#f3e9d2')
+  rect(stat_box_x, stat_box_y, stat_box_w, stat_box_h);
+
+  textSize(16);
+  fill('#3e4a61')
+  text('Day:', stat_box_x + 10, stat_box_y + 25);
+  text(ticksToSeconds(TICKS), stat_box_x + 120, stat_box_y + 25);
+  text('Items:', stat_box_x + 10, stat_box_y + 50);
+  text(particle_count, stat_box_x + 120, stat_box_y + 50);
+  text('Moving items:', stat_box_x + 10, stat_box_y + 75);
+  text(particle_count * (1.0 - home_percentage), stat_box_x + 120, stat_box_y + 75);
+  text('(' + ofTotalParticles(particle_count * (1.0 - home_percentage)) + '%)', stat_box_x + 170, stat_box_y + 75);
   fill('#cb3b3b')
-  text('Infected:', stat_box_x + 10, stat_box_y + 105);
-  text(_infected, stat_box_x + 120, stat_box_y + 105);
-  text('(' + ofTotalParticles(_infected) + '%)', stat_box_x + 170, stat_box_y + 105);
+  text('Infected:', stat_box_x + 10, stat_box_y + 100);
+  text(_infected, stat_box_x + 120, stat_box_y + 100);
+  text('(' + ofTotalParticles(_infected) + '%)', stat_box_x + 170, stat_box_y + 100);
   fill('#ff6d24')
-  text('Active:', stat_box_x + 10, stat_box_y + 130);
-  text(_active, stat_box_x + 120, stat_box_y + 130);
-  text('(' + ofTotalParticles(_active) + '%)', stat_box_x + 170, stat_box_y + 130);
-  text('Max Active:', stat_box_x + 10, stat_box_y + 155);
-  text(_maxActive, stat_box_x + 120, stat_box_y + 155);
-  text('(' + ofTotalParticles(_maxActive) + '%)', stat_box_x + 170, stat_box_y + 155);
+  text('Active:', stat_box_x + 10, stat_box_y + 125);
+  text(_active, stat_box_x + 120, stat_box_y + 125);
+  text('(' + ofTotalParticles(_active) + '%)', stat_box_x + 170, stat_box_y + 125);
+  text('Max Active:', stat_box_x + 10, stat_box_y + 150);
+  text(_maxActive, stat_box_x + 120, stat_box_y + 150);
+  text('(' + ofTotalParticles(_maxActive) + '%)', stat_box_x + 170, stat_box_y + 150);
   fill('#389168')
-  text('Recovered:', stat_box_x + 10, stat_box_y + 180);
-  text(_recovered, stat_box_x + 120, stat_box_y + 180);
-  text('(' + ofTotalParticles(_recovered) + '%)', stat_box_x + 170, stat_box_y + 180);
+  text('Recovered:', stat_box_x + 10, stat_box_y + 175);
+  text(_recovered, stat_box_x + 120, stat_box_y + 175);
+  text('(' + ofTotalParticles(_recovered) + '%)', stat_box_x + 170, stat_box_y + 175);
   fill('#000000')
-  text('Deceased:', stat_box_x + 10, stat_box_y + 205);
-  text(_dead, stat_box_x + 120, stat_box_y + 205);
-  text('(' + ofTotalParticles(_dead) + '%)', stat_box_x + 170, stat_box_y + 205);
+  text('Deceased:', stat_box_x + 10, stat_box_y + 200);
+  text(_dead, stat_box_x + 120, stat_box_y + 200);
+  text('(' + ofTotalParticles(_dead) + '%)', stat_box_x + 170, stat_box_y + 200);
 }
 
 var chart = [];
 
 function drawChart() {
-  let cumul_chart_x = 270;
-  let cumul_chart_y = box_h;
-  let cumul_chart_h = (CANVAS_H - box_h) / 2;
+  let cumul_chart_x = chart_box_x;
+  let cumul_chart_y = particle_box_h;
+  let cumul_chart_h = (CANVAS_H - particle_box_h) / 2;
   let cumul_chart_w = CANVAS_W - cumul_chart_x;
 
-  let active_chart_x = 270;
-  let active_chart_y = box_h + cumul_chart_h;
-  let active_chart_h = (CANVAS_H - box_h) / 2;
+  let active_chart_x = chart_box_x;
+  let active_chart_y = particle_box_h + cumul_chart_h;
+  let active_chart_h = (CANVAS_H - particle_box_h) / 2;
   let active_chart_w = CANVAS_W - cumul_chart_x;
 
   let cumul_ppp = cumul_chart_h / particle_count;
@@ -180,6 +251,11 @@ function drawChart() {
     rect(active_chart_x + (x * bar_width), active_chart_y + active_chart_h, bar_width, -d['active'] * active_ppp);
     x++;
   })
+
+  textSize(14);
+  fill('#000000a0')
+  text('Cumulative cases chart', cumul_chart_x + 10, cumul_chart_y + 20);
+  text('Active cases chart', active_chart_x + 10, active_chart_y + 20);
 }
 
 function updateChart() {
@@ -223,7 +299,7 @@ class Particle {
 
     this.wasInfected = false;
     this.state = HealthState.NORMAL;
-    this.infectionDay = 0;
+    this.infectionDay = -1;
 
     this.staysAtHome = false;
   }
@@ -240,8 +316,8 @@ class Particle {
       return;
     }
 
-    this.dx += ((particle_max_speed / 4) - Math.random() * (particle_max_speed / 2));
-    this.dy += ((particle_max_speed / 4) - Math.random() * (particle_max_speed / 2));
+    // this.dx += ((particle_max_speed / 4) - Math.random() * (particle_max_speed / 2));
+    // this.dy += ((particle_max_speed / 4) - Math.random() * (particle_max_speed / 2));
 
     if (this.dx > particle_max_speed) {
       this.dx = particle_max_speed
@@ -260,8 +336,8 @@ class Particle {
     if (this.state == HealthState.INFECTED) {
       // If infected movement is slowed
       // This helps to create clusters of infected particles
-      this.x = this.x + this.dx / 2;
-      this.y = this.y + this.dy / 2;
+      this.x = this.x + this.dx / 1;
+      this.y = this.y + this.dy / 1;
     } else {
       this.x = this.x + this.dx;
       this.y = this.y + this.dy;
@@ -269,27 +345,11 @@ class Particle {
 
 
     // Canvas bounds
-    if (this.x + particle_size >= box_w || this.x < 0) {
+    if (((this.x + particle_size) >= (particle_box_x + particle_box_w)) || this.x < particle_box_x) {
       this.dx = -this.dx;
     }
-    if (this.y + particle_size >= box_h || this.y < 0) {
+    if (((this.y + particle_size) >= (particle_box_y + particle_box_h)) || this.y < particle_box_y) {
       this.dy = -this.dy;
-    }
-
-    if (this.x + particle_size >= box_w) {
-      this.x = box_w - particle_size;
-    }
-
-    if (this.x < 0) {
-      this.x = 0;
-    }
-
-    if (this.y + particle_size >= box_h) {
-      this.y = box_h - particle_size;
-    }
-
-    if (this.y < 0) {
-      this.y = 0;
     }
 
   }
@@ -299,25 +359,23 @@ class Particle {
 
     switch (this.state) {
       case HealthState.NORMAL:
-        fill('#ace6f6');
+        fill(color_normal);
         ellipse(this.x, this.y, particle_size);
         break;
       case HealthState.INFECTED:
-        fill('#f0f69610')
-        ellipse(this.x, this.y, particle_infection_area)
-        fill('#cb3b3b');
+        fill(color_infected);
         ellipse(this.x, this.y, particle_size);
         break;
       case HealthState.DECEASED:
-        fill('#00000050');
+        fill(color_deceased);
         ellipse(this.x, this.y, particle_size);
         break;
       case HealthState.RECOVERED:
-        fill('#389168');
+        fill(color_recovered);
         ellipse(this.x, this.y, particle_size);
         break;
       default:
-        fill('#ace6f6');
+        fill(color_normal);
         ellipse(this.x, this.y, particle_size);
         break;
     }
@@ -326,17 +384,18 @@ class Particle {
   checkState() {
 
     let days_infected = floor(ticksToSeconds(TICKS)) - this.infectionDay;
-    let probability_factor = days_infected / 28;
 
     switch (this.state) {
       case HealthState.NORMAL:
         // Nothing
         break;
       case HealthState.INFECTED:
-        if (probability(status_probability_death * probability_factor)) {
-          this.state = HealthState.DECEASED;
-        } else if (probability(status_probability_recovery * probability_factor)) {
-          this.state = HealthState.RECOVERED;
+        if (days_infected >= infection_inbation_days) {
+          if (probability(status_probability_death)) {
+            this.state = HealthState.DECEASED;
+          } else if (probability(status_probability_recovery)) {
+            this.state = HealthState.RECOVERED;
+          }
         }
         break;
       case HealthState.DECEASED:
@@ -356,7 +415,7 @@ class Particle {
 
   collideWith(p) {
 
-    if (p.state == HealthState.DECEASED) {
+    if (p.state == HealthState.DECEASED || this.state == HealthState.DECEASED) {
       return;
     }
 
@@ -365,8 +424,8 @@ class Particle {
     if (d < particle_size) {
 
       if (probability(infection_probability_contact)
-        && this.state == HealthState.INFECTED
-        && p.state == HealthState.NORMAL) {
+        && this.canInfect()
+        && p.canBeInfected()) {
         p.infect();
       }
 
@@ -380,16 +439,17 @@ class Particle {
       p.dx += ax;
       p.dy += ay;
 
-    } else if (d < (particle_infection_area / 2)) {
-
-      if (probability(infection_probability_area)
-        && this.state == HealthState.INFECTED
-        && p.state == HealthState.NORMAL) {
-        p.infect();
-      }
-
     }
 
+
+  }
+
+  canBeInfected() {
+    return this.state == HealthState.NORMAL;
+  }
+
+  canInfect() {
+    return this.state == HealthState.INFECTED;
   }
 
   infect() {
