@@ -2,6 +2,8 @@
 
 Covid19 Spread Simulator is a simple virus spread simulation to demonstrate quarantine effectiveness.
 
+Whatch it in action here: http://fedemas.me/covid19
+
 ## Disclaimer
 
 This experiment must be considered as such and not as absolute truth.
