@@ -20,7 +20,7 @@ const chart_box_w = CANVAS_W - stat_box_w;
 const chart_box_h = stat_box_h;
 
 const control_box_x = stat_box_x;
-const control_box_y = stat_box_y + 160;
+const control_box_y = stat_box_y + 180;
 const control_box_w = 250;
 const control_box_h = stat_box_h - 160;
 
@@ -46,7 +46,7 @@ const sanitary_system_limit = 0.5;
 
 // Simulation
 const qurantine_percentage = 0.85;
-let quarantine = false;
+let _quarantine = false;
 
 var _ticks = 0;
 
@@ -86,7 +86,7 @@ function init() {
 
   _particles[0].infect();
 
-  if (quarantine) {
+  if (_quarantine) {
     for (var i = 1; i < particle_count * qurantine_percentage; i++) {
       _particles[i].staysAtHome = true;
     }
@@ -104,12 +104,13 @@ function init() {
 }
 
 function initControls() {
-  quarantine_btn = createButton(quarantine ? 'Disable quarantine' : 'Enable quarantine');
+  quarantine_btn = createButton('Toggle quarantine');
   quarantine_btn.parent('sim-sketch');
   quarantine_btn.position(control_box_x + 10, control_box_y + 10);
   quarantine_btn.size(230, 20);
   quarantine_btn.mousePressed(() => {
-    quarantine = !quarantine;
+    _quarantine = !_quarantine;
+    quarantine_btn.value("")
     init();
   });
 }
@@ -176,42 +177,62 @@ function drawStatistics() {
   let text_size = 14;
   let row_size = text_size + 5;
 
+  var i = 0;
+
   textSize(text_size);
 
+  i++;
   fill('#3e4a61')
-  text('Day:', col_1, stat_box_y + row_size);
-  text(ticksToSeconds(_ticks), col_2, stat_box_y + row_size);
-  text('Items:', col_1, stat_box_y + row_size * 2);
-  text(particle_count, col_2, stat_box_y + row_size * 2);
+  text('Day:', col_1, stat_box_y + row_size * i);
+  text(ticksToSeconds(_ticks), col_2, stat_box_y + row_size * i);
 
-  text('Moving items:', col_1, stat_box_y + row_size * 3);
+  i++;
+  fill('#3e4a61')
+  text('Quarantine:', col_1, stat_box_y + row_size * i);
+  fill(_quarantine ? '#389168' : '#cb3b3b')
+  text(_quarantine ? 'Enabled' : 'Disabled', col_2, stat_box_y + row_size * i);
 
-  let moving_particles = quarantine ? floor(particle_count * (1.0 - qurantine_percentage)) : particle_count;
+  i++;
+  fill('#3e4a61')
+  text('Total items:', col_1, stat_box_y + row_size * i);
+  text(particle_count, col_2, stat_box_y + row_size * i);
 
-  text(moving_particles, col_2, stat_box_y + row_size * 3);
-  text('(' + ofTotalParticles(moving_particles) + '%)', col_3, stat_box_y + row_size * 3);
+  i++;
+  fill('#3e4a61')
+  let moving_particles = _quarantine ? floor(particle_count * (1.0 - qurantine_percentage)) : particle_count;
+  text('Moving items:', col_1, stat_box_y + row_size * i);
+  text(moving_particles, col_2, stat_box_y + row_size * i);
+  text('(' + ofTotalParticles(moving_particles) + '%)', col_3, stat_box_y + row_size * i);
 
+  i++;
   fill('#cb3b3b')
-  text('Infected:', col_1, stat_box_y + row_size * 4);
-  text(_infected, col_2, stat_box_y + row_size * 4);
-  text('(' + ofTotalParticles(_infected) + '%)', col_3, stat_box_y + row_size * 4);
+  text('Infected:', col_1, stat_box_y + row_size * i);
+  text(_infected, col_2, stat_box_y + row_size * i);
+  text('(' + ofTotalParticles(_infected) + '%)', col_3, stat_box_y + row_size * i);
 
+  i++;
   fill('#ff6d24')
-  text('Active:', col_1, stat_box_y + row_size * 5);
-  text(_active, col_2, stat_box_y + row_size * 5);
-  text('(' + ofTotalParticles(_active) + '%)', col_3, stat_box_y + row_size * 5);
+  text('Active:', col_1, stat_box_y + row_size * i);
+  text(_active, col_2, stat_box_y + row_size * i);
+  text('(' + ofTotalParticles(_active) + '%)', col_3, stat_box_y + row_size * i);
 
-  text('Max Active:', col_1, stat_box_y + row_size * 6);
-  text(_maxActive, col_2, stat_box_y + row_size * 6);
-  text('(' + ofTotalParticles(_maxActive) + '%)', col_3, stat_box_y + row_size * 6);
+  i++;
+  text('Max Active:', col_1, stat_box_y + row_size * i);
+  text(_maxActive, col_2, stat_box_y + row_size * i);
+  text('(' + ofTotalParticles(_maxActive) + '%)', col_3, stat_box_y + row_size * i);
   fill('#389168')
-  text('Recovered:', col_1, stat_box_y + row_size * 7);
-  text(_recovered, col_2, stat_box_y + row_size * 7);
-  text('(' + ofTotalParticles(_recovered) + '%)', col_3, stat_box_y + row_size * 7);
+
+  i++;
+  text('Recovered:', col_1, stat_box_y + row_size * i);
+  text(_recovered, col_2, stat_box_y + row_size * i);
+  text('(' + ofTotalParticles(_recovered) + '%)', col_3, stat_box_y + row_size * i);
+
+  i++;
   fill('#000000')
-  text('Deceased:', col_1, stat_box_y + row_size * 8);
-  text(_dead, col_2, stat_box_y + row_size * 8);
-  text('(' + ofTotalParticles(_dead) + '%)', col_3, stat_box_y + row_size * 8);
+  text('Deceased:', col_1, stat_box_y + row_size * i);
+  text(_dead, col_2, stat_box_y + row_size * i);
+  text('(' + ofTotalParticles(_dead) + '%)', col_3, stat_box_y + row_size * i);
+
 }
 
 function drawChart() {
