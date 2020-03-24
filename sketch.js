@@ -1,3 +1,5 @@
+p5.disableFriendlyErrors = true; // disables FES
+
 // Graphics
 const CANVAS_W = 1280;
 const CANVAS_H = 1100;
@@ -61,12 +63,15 @@ var chart = [];
 
 var canvas;
 
+let quarantine_btn;
+
 function setup() {
   // createCanvas(CANVAS_W, CANVAS_H);
   canvas = createCanvas(CANVAS_W, CANVAS_H);
   canvas.parent('sim-sketch');
   frameRate(fps);
   init();
+  initControls();
 }
 
 function init() {
@@ -94,13 +99,20 @@ function init() {
   _active = 0;
   _maxActive = 0;
 
-  chart = [];
+  chart.clear();
 
 }
 
-var last_fps_sec = 0;
-var last_fps_ticks = 0;
-var actual_fps = 0;
+function initControls() {
+  quarantine_btn = createButton(quarantine ? 'Disable quarantine' : 'Enable quarantine');
+  quarantine_btn.parent('sim-sketch');
+  quarantine_btn.position(control_box_x + 10, control_box_y + 10);
+  quarantine_btn.size(230, 20);
+  quarantine_btn.mousePressed(() => {
+    quarantine = !quarantine;
+    init();
+  });
+}
 
 function draw() {
   _ticks++;
@@ -112,7 +124,6 @@ function draw() {
 
   background(0);
 
-  drawControls();
   drawParticles();
   drawChart();
   drawStatistics();
@@ -120,14 +131,9 @@ function draw() {
 }
 
 function drawFps() {
-  if (second() != last_fps_sec) {
-    actual_fps = _ticks - last_fps_ticks;
-    last_fps_sec = second();
-    last_fps_ticks = _ticks;
-  }
   textSize(14);
   fill('#ffd717')
-  text(actual_fps, particle_box_x + 10, particle_box_y + 20);
+  text(floor(frameRate()), particle_box_x + 10, particle_box_y + 20);
 }
 
 function drawParticles() {
@@ -154,22 +160,6 @@ function drawParticles() {
   if (_active > _maxActive) {
     _maxActive = _active;
   }
-}
-
-let quarantine_btn;
-
-
-function drawControls() {
-
-  quarantine_btn = createButton(quarantine ? 'Disable quarantine' : 'Enable quarantine');
-  quarantine_btn.parent('sim-sketch');
-  quarantine_btn.position(control_box_x + 10, control_box_y + 10);
-  quarantine_btn.size(230, 20);
-  quarantine_btn.mousePressed(() => {
-    quarantine = !quarantine;
-    init();
-  });
-
 }
 
 function drawStatistics() {
@@ -487,3 +477,7 @@ class Particle {
     this.wasInfected = true;
   }
 }
+
+Array.prototype.clear = function () {
+  this.splice(0, this.length);
+};
