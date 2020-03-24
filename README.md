@@ -14,12 +14,12 @@ The data used are not necessarily the true representation of the current situati
 It shows a simulation of 500 particles moving around and colliding with each other. 
 At the start one particle is infected and every time it collides with another particle it infects it.
 
-After some time of infection particles are checked and changed to recovered or deceased based on a certain probability set.
-If the current total infected particles number exceeds the maximum National Sanitary System load level, the probability of death increased.
+After some time of infection, particles are checked and their status is changed to recovered or deceased based on a certain probability set.
+If the current total infected particles number exceeds the maximum National Sanitary System load level, the probability of death is increased.
 
-There is a box with real-time statistics to show current state of particles and a box with two charts: one for the cumulative infections (total infected, recovred and deceased) and one for the current infected particles.
+There is a box with real-time statistics to show current state of particles and a box with two charts: one for the cumulative infections (total infected, recovered and deceased) and one for the current infected particles.
 
-Clicking on the "Enable quarantine" button, 80% of the total particles will not move.
+Clicking on the "Enable quarantine" button, 80% of the total particles will not move simultatin quarantined people.
 
 ## Data used
 
