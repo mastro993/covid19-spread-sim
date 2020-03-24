@@ -28,7 +28,8 @@ Percentages and values used were taken from the available sources (like newspape
 Death probability: 10% (in Italy, at the moment I'm pushing the code)
 Quarantined people: 80% (assuming 20% are people who work or does essential shopping)
 Probability check: after 14 days
+Nation Sanitary System max load: 50% (hypothesis, no data available)
 
 ## Results
 
-Enabling quarantine shows its effectiveness by ensuring that total cases never exceed the maximum load of the National Sanitary System.
+Enabling quarantine shows its effectiveness by ensuring that total cases never exceed the maximum load supported by the National Sanitary System.
