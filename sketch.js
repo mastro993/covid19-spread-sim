@@ -237,19 +237,18 @@ function drawStatistics() {
 
 function drawChart() {
 
-
   let active_chart_x = chart_box_x;
   let active_chart_y = particle_box_h;
   let active_chart_h = ((CANVAS_H - particle_box_h) / 3) * 2;
+  let active_chart_w = CANVAS_W - stat_box_w;
 
   let cumul_chart_x = chart_box_x;
   let cumul_chart_y = particle_box_h + active_chart_h;
   let cumul_chart_h = (CANVAS_H - particle_box_h) / 3;
+  let cumul_chart_w = CANVAS_W - stat_box_w;
 
   let cumul_ppp = cumul_chart_h / particle_count;
   let active_ppp = active_chart_h / particle_count;
-
-  const bar_width = 5;
 
   fill('#e2ded3')
 
@@ -260,6 +259,7 @@ function drawChart() {
 
   updateChart();
   var x = 0;
+  let bar_width = cumul_chart_w / chart.length;
   chart.forEach((d) => {
     fill('#cb3b3b')
     rect(cumul_chart_x + (x * bar_width) + 5, cumul_chart_y + cumul_chart_h, bar_width, -d['infected'] * cumul_ppp);
