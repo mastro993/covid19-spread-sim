@@ -19,7 +19,7 @@ If the current total infected particles number exceeds the maximum National Sani
 
 There is a box with real-time statistics to show current state of particles and a box with two charts: one for the cumulative infections (total infected, recovered and deceased) and one for the current infected particles.
 
-Clicking on the "Enable quarantine" button, 80% of the total particles will not move simultatin quarantined people.
+Clicking on the "Toggle quarantine" button, 80% of the total particles will not move simulating quarantined people.
 
 ## Data used
 
